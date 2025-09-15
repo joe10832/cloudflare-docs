@@ -59,3 +59,32 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             "https://api.github.com/repos/$GITHUB_REPOSITORY/issues" \
             -d "{\"title\": \"Broken Header Links Found\", \"body\": \"$(cat issue_body.txt)\", \"assignees\": [\"haleycode\"]}"
+import hashlib
+import os
+import shutil
+
+def calculate_hash(file_path):
+    """Calculate the SHA256 hash of a file."""
+    hash_sha256 = hashlib.sha256()
+    with open(file_path, 'rb') as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hash_sha256.update(chunk)
+    return hash_sha256.hexdigest()
+
+def quarantine_file(file_path, quarantine_dir):
+    """Move a suspicious file to a quarantine directory."""
+    if not os.path.exists(quarantine_dir):
+        os.makedirs(quarantine_dir)
+    shutil.move(file_path, os.path.join(quarantine_dir, os.path.basename(file_path)))
+
+# Example usage
+file_to_check = 'example.txt'
+suspicious_hashes = ['abc123...', 'def456...']  # Replace with actual suspicious hashes
+quarantine_directory = 'quarantine'
+
+file_hash = calculate_hash(file_to_check)
+if file_hash in suspicious_hashes:
+    quarantine_file(file_to_check, quarantine_directory)
+    print(f"Quarantined: {file_to_check}")
+else:
+    print(f"File is safe: {file_to_check}")
